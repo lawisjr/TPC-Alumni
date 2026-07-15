@@ -1,0 +1,82 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Resources\UserResource;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class ProfileController extends Controller
+{
+    public function update(UpdateProfileRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $data = $request->validated();
+
+        if ($request->hasFile('avatar')) {
+            $this->deleteStoredAvatar($user);
+
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $data['avatar'] = "/storage/{$path}";
+        }
+
+        $user->update($data);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Profile updated.',
+            'data' => new UserResource($user->fresh()->load('department', 'alumniProfile')),
+        ]);
+    }
+
+    public function updateAvatar(Request $request): JsonResponse
+    {
+        $request->validate([
+            'avatar' => ['required', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+        ]);
+
+        $user = $request->user();
+        $this->deleteStoredAvatar($user);
+
+        $path = $request->file('avatar')->store('avatars', 'public');
+        $user->update(['avatar' => "/storage/{$path}"]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Avatar updated successfully.',
+            'data' => new UserResource($user->fresh()->load('department', 'alumniProfile')),
+        ]);
+    }
+
+    public function deleteAvatar(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $this->deleteStoredAvatar($user);
+        $user->update(['avatar' => null]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Avatar removed.',
+            'data' => new UserResource($user->fresh()->load('department', 'alumniProfile')),
+        ]);
+    }
+
+    private function deleteStoredAvatar($user): void
+    {
+        if (! $user->avatar) {
+            return;
+        }
+
+        $storedPath = $user->avatar;
+        if (str_starts_with($storedPath, 'http')) {
+            return;
+        }
+
+        $relativePath = ltrim(str_replace('/storage/', '', $storedPath), '/');
+        if ($relativePath) {
+            Storage::disk('public')->delete($relativePath);
+        }
+    }
+}
