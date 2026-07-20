@@ -1,7 +1,7 @@
-import React from "react";
+import Analytics from "../president/Analytics";
 
 function DeptAnalytics() {
-  return <div>DeptAnalytics</div>;
+  return <Analytics />;
 }
 
 export default DeptAnalytics;

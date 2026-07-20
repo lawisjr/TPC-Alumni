@@ -132,23 +132,19 @@ function FilterBar({
           onBlur={(e) => (e.target.style.boxShadow = "none")}
           disabled={departmentLocked}
         >
-          <option value="">All Departments</option>
-          {/* If department is locked but not present in the departments list, show it */}
-          {departmentLocked &&
-            filters.department &&
-            !departments.find(
-              (d) => String(d.id ?? d.name) === String(filters.department),
-            ) && (
-              <option value={filters.department}>
-                {localStorage.getItem("userDepartmentName") ||
-                  filters.department}
-              </option>
-            )}
-          {departments.map((dept) => (
-            <option key={dept.id ?? dept.name} value={dept.id ?? dept.name}>
-              {dept.name}
+          {!departmentLocked ? (
+            <option value="">All Departments</option>
+          ) : (
+            <option value={filters.department || ""}>
+              {localStorage.getItem("userDepartmentName") || "My Department"}
             </option>
-          ))}
+          )}
+          {!departmentLocked &&
+            departments.map((dept) => (
+              <option key={dept.id ?? dept.name} value={dept.id ?? dept.name}>
+                {dept.name}
+              </option>
+            ))}
         </select>
         <ChevronDown
           size={13}
