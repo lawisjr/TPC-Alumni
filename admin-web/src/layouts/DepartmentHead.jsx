@@ -225,7 +225,7 @@ export default function DepartmentHeadLayout({ children }) {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-auto bg-white">{children}</div>
+        <div className="flex-1 overflow-auto bg-white p-6">{children}</div>
       </div>
     </div>
   );
